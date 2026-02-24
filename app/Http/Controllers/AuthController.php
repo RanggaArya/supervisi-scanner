@@ -53,8 +53,9 @@ class AuthController extends Controller
                 Session::put('user_id', $user->id);
                 Session::put('user_name', $user->name);
                 
-                return redirect()->route('scanner')
-                    ->with('success', 'Login berhasil!');
+                // UPDATE: Redirect ke Dashboard (Menu), bukan scanner
+                return redirect()->route('dashboard')
+                    ->with('success', 'Login berhasil! Silakan pilih menu.');
             }
             
             return back()

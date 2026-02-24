@@ -8,12 +8,38 @@ use Illuminate\Support\Facades\Session;
 
 class ScannerController extends Controller
 {
+    // Tampilkan Halaman Menu Pilihan
+    public function dashboard()
+    {
+        $inventoryType = Session::get('inventory_type');
+        $userName = Session::get('user_name');
+        
+        // Buat view baru nanti: resources/views/scanner/menu.blade.php
+        return view('scanner.menu', compact('inventoryType', 'userName'));
+    }
+
+    // Set Mode Scan lalu lempar ke halaman scanner
+    public function setMode($mode)
+    {
+        // Simpan mode yang dipilih (supervisi, maintenance, atau mutasi)
+        Session::put('scan_mode', $mode);
+        return redirect()->route('scanner');
+    }
+
     public function index()
     {
         $inventoryType = Session::get('inventory_type');
         $userName = Session::get('user_name');
         
-        return view('scanner.index', compact('inventoryType', 'userName'));
+        // Ambil mode dari session, default ke supervisi jika kosong
+        $scanMode = Session::get('scan_mode', 'supervisi');
+        
+        // Cek jika user mencoba akses scanner langsung tanpa pilih mode
+        if (!Session::has('scan_mode')) {
+            return redirect()->route('dashboard');
+        }
+        
+        return view('scanner.index', compact('inventoryType', 'userName', 'scanMode'));
     }
     
     public function getItemDetail(Request $request)
@@ -24,6 +50,7 @@ class ScannerController extends Controller
         
         // Extract ID dari QR Code URL
         $itemId = $this->extractIdFromUrl($scannedData);
+        $tableName = $this->getTableName($inventoryType);
         
         if (!$itemId) {
             return response()->json([
